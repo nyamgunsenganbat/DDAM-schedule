@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DDAM — Цаг захиалга</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#111110;--ink2:#5c5c56;--ink3:#9a9a93;
+  --surface:#fafaf8;--surface2:#f2f2ee;
+  --line:#e2e2db;--line2:#d0d0c8;
+  --sage-bg:#edf6ed;--sage-border:#b8d9b8;--sage-text:#2d6a3f;--sage-mid:#4a9962;
+  --amber-bg:#fdf5e0;--amber-border:#e8c84a;--amber-text:#7a5c00;
+  --red-bg:#fef2f2;--red-text:#9b2c2c;
+  --r:14px;--rs:9px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* subtle dot grid background */
+body{background-image:radial-gradient(circle,#e0e0d8 1px,transparent 1px);background-size:28px 28px;background-color:#fff}
+
+.wrap{position:relative;z-index:1;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.96) 180px,rgba(255,255,255,.99) 100%)}
+
+/* HERO */
+.hero{padding:52px 24px 0;max-width:640px;margin:0 auto;text-align:center}
+.hero-tag{display:inline-flex;align-items:center;gap:7px;padding:5px 14px;border:1px solid var(--line2);border-radius:99px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:22px;background:#fff}
+.tag-dot{width:6px;height:6px;border-radius:50%;background:var(--sage-mid)}
+.hero h1{font-family:'Instrument Serif',serif;font-size:clamp(38px,8vw,62px);font-weight:400;line-height:1.04;letter-spacing:-.025em;color:var(--ink);margin-bottom:14px}
+.hero h1 em{font-style:italic;color:var(--ink2)}
+.hero-sub{font-size:15px;color:var(--ink3);font-weight:300;line-height:1.6;margin-bottom:40px}
+.divider{max-width:640px;margin:0 auto 34px;height:1px;background:var(--line)}
+
+/* CONTAINER */
+.container{max-width:640px;margin:0 auto;padding:0 24px 80px}
+
+/* DATE CHIP */
+.date-chip{display:inline-flex;align-items:center;gap:9px;padding:9px 16px;background:#fff;border:1px solid var(--line);border-radius:99px;font-size:13px;color:var(--ink2);margin-bottom:28px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.chip-dot{width:7px;height:7px;border-radius:50%;background:var(--sage-mid);flex-shrink:0;box-shadow:0 0 0 3px var(--sage-bg)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:32px}
+.stat{padding:18px 16px;border:1px solid var(--line);border-radius:var(--r);background:#fff;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--line2)}
+.stat.green::after{background:var(--sage-mid)}
+.stat.amber::after{background:#d4a017}
+.stat-n{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;letter-spacing:-.04em;line-height:1;margin-bottom:5px}
+.stat.green .stat-n{color:var(--sage-text)}
+.stat.amber .stat-n{color:var(--amber-text)}
+.stat-l{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em}
+
+/* SLOTS */
+.slots-list{display:flex;flex-direction:column;gap:7px}
+.slot-card{display:grid;grid-template-columns:108px 1fr auto;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:var(--r);background:#fff;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .1s;user-select:none}
+.slot-card:hover:not(.booked){border-color:var(--line2);box-shadow:0 2px 16px rgba(0,0,0,.06)}
+.slot-card:active:not(.booked){transform:scale(.997)}
+.slot-card.selected{border:1.5px solid var(--ink);box-shadow:0 0 0 4px rgba(17,17,16,.06)}
+.slot-card.booked{background:var(--sage-bg);border-color:var(--sage-border);cursor:default}
+.slot-time{font-family:'DM Mono',monospace;font-size:19px;font-weight:500;letter-spacing:-.02em;color:var(--ink)}
+.slot-card.booked .slot-time{color:var(--sage-text)}
+.slot-end{font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace;margin-top:3px}
+.slot-card.booked .slot-end{color:var(--sage-mid)}
+.slot-meta{font-size:13px;color:var(--ink3)}
+.bname{font-size:14px;font-weight:500;color:var(--sage-text)}
+.s-tag{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:99px;white-space:nowrap}
+.t-free{background:var(--surface2);color:var(--ink3)}
+.t-booked{background:var(--sage-border);color:var(--sage-text)}
+.t-sel{background:var(--ink);color:#fff}
+
+/* CONFIRM */
+.confirm{margin-top:16px;padding:26px;background:var(--surface);border:1.5px solid var(--ink);border-radius:var(--r);animation:pop .18s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(4px)}to{opacity:1;transform:none}}
+.c-label{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px}
+.c-time{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;letter-spacing:-.04em;color:var(--ink);margin-bottom:18px}
+.c-row{display:flex;gap:8px}
+.c-row input{flex:1;height:46px;padding:0 16px;font-family:'DM Sans',sans-serif;font-size:14px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;outline:none;color:var(--ink);transition:border-color .15s}
+.c-row input:focus{border-color:var(--ink)}
+.c-row input::placeholder{color:var(--ink3)}
+.btn-book{height:46px;padding:0 22px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:var(--ink);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;white-space:nowrap;transition:opacity .15s,transform .1s;letter-spacing:.01em}
+.btn-book:hover{opacity:.82}
+.btn-book:active{transform:scale(.97)}
+.btn-book:disabled{opacity:.35;cursor:default}
+
+/* SETUP BANNER */
+.setup-banner{padding:22px 24px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);margin-bottom:24px;display:none}
+.setup-banner h3{font-family:'Instrument Serif',serif;font-size:19px;font-weight:400;color:var(--amber-text);margin-bottom:8px}
+.setup-banner p{font-size:13px;color:var(--amber-text);line-height:1.7}
+.setup-banner strong{font-weight:500}
+
+/* LOADING */
+.loading{text-align:center;padding:48px 0;color:var(--ink3);font-size:14px}
+.spin{width:20px;height:20px;border:1.5px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ADMIN */
+.admin-wrap{margin-top:48px;padding-top:24px;border-top:1px solid var(--line);text-align:center}
+.btn-ghost{background:#fff;border:1px solid var(--line2);border-radius:var(--rs);padding:10px 20px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink3);cursor:pointer;transition:border-color .15s,color .15s}
+.btn-ghost:hover{border-color:var(--ink2);color:var(--ink)}
+.admin-panel{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:none}
+.admin-panel.open{display:block}
+.admin-head{padding:16px 22px;border-bottom:1px solid var(--line);background:var(--surface);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.admin-body{padding:20px 22px}
+.pin-row{display:flex;gap:8px}
+.pin-row input{width:130px;height:40px;padding:0 14px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:.2em;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;outline:none;transition:border-color .15s}
+.pin-row input:focus{border-color:var(--ink)}
+.pin-hint{font-size:13px;color:var(--ink3);margin-bottom:12px}
+.btn-s{height:40px;padding:0 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;background:var(--ink);color:#fff;border:none;border-radius:var(--rs);cursor:pointer;transition:opacity .15s}
+.btn-s:hover{opacity:.8}
+.btn-s.out{background:#fff;color:var(--ink);border:1px solid var(--line2)}
+.btn-s.out:hover{border-color:var(--ink2)}
+.btn-s.red{background:#c0392b}
+.admin-list{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.ar{display:grid;grid-template-columns:1fr 1fr auto;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--rs);font-size:13px}
+.ar.bkd{background:var(--sage-bg);border-color:var(--sage-border)}
+.ar-time{font-family:'DM Mono',monospace;font-weight:500;font-size:13px}
+.ar-who{color:var(--sage-text);font-weight:500}
+.ar-free{color:var(--ink3)}
+.btn-del{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:none;border:1px solid var(--line);border-radius:6px;cursor:pointer;color:var(--ink3);font-size:15px;transition:all .15s}
+.btn-del:hover{border-color:#e74c3c;color:#e74c3c;background:var(--red-bg)}
+.add-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line)}
+.add-row label{font-size:12px;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.add-row input[type=time]{height:40px;padding:0 12px;font-family:'DM Mono',monospace;font-size:14px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;outline:none;transition:border-color .15s}
+.add-row input[type=time]:focus{border-color:var(--ink)}
+.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+/* WEB APP URL CONFIG inside admin */
+.url-config{margin-bottom:18px;padding:14px 16px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--rs)}
+.url-config p{font-size:12px;color:var(--amber-text);margin-bottom:8px;line-height:1.6}
+.url-config-row{display:flex;gap:6px}
+.url-config-row input{flex:1;height:36px;padding:0 10px;font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--amber-border);border-radius:6px;background:#fff;outline:none;color:var(--ink)}
+.url-config-row button{height:36px;padding:0 14px;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;background:var(--amber-text);color:#fff;border:none;border-radius:6px;cursor:pointer}
+.url-saved{font-size:12px;color:var(--sage-text);margin-top:6px;display:none}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:99px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:999;max-width:calc(100vw - 40px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{background:#c0392b}
+.toast.ok{background:var(--sage-text)}
+
+/* FOOTER */
+.footer{text-align:center;padding:0 0 40px;font-size:11px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase}
+
+@media(max-width:480px){
+  .hero{padding:36px 18px 0}
+  .hero h1{font-size:36px}
+  .container{padding:0 18px 60px}
+  .slot-card{grid-template-columns:90px 1fr auto;gap:10px;padding:14px 14px}
+  .slot-time{font-size:15px}
+  .stats{gap:8px}
+  .stat-n{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag"><span class="tag-dot"></span>DDAM · Зөвлөгөөний систем</div>
+  <h1>Цаг <em>захиалах</em></h1>
+  <p class="hero-sub">Баасан өдөр &nbsp;·&nbsp; 50 минутын зөвлөгөө &nbsp;·&nbsp; 10 минут завсарлага</p>
+</div>
+<div class="divider"></div>
+
+<div class="container">
+
+  <div class="setup-banner" id="setup-banner">
+    <h3>⚙ Apps Script URL тохируулна уу</h3>
+    <p>Бүх хүн нэг өгөгдөл харахын тулд Админ → <strong>Web App URL оруулах</strong> хэсгийг бөглөнө үү.</p>
+  </div>
+
+  <div class="date-chip">
+    <span class="chip-dot"></span>
+    <span id="date-txt">...</span>
+  </div>
+
+  <div class="stats" id="stats" style="display:none">
+    <div class="stat"><div class="stat-n" id="s-t">0</div><div class="stat-l">Нийт цаг</div></div>
+    <div class="stat green"><div class="stat-n" id="s-f">0</div><div class="stat-l">Чөлөөт</div></div>
+    <div class="stat amber"><div class="stat-n" id="s-b">0</div><div class="stat-l">Захиалагдсан</div></div>
+  </div>
+
+  <div id="slots-wrap"><div class="loading"><div class="spin"></div>Ачааллаж байна…</div></div>
+  <div id="confirm-wrap"></div>
+
+  <!-- ADMIN -->
+  <div class="admin-wrap">
+    <button class="btn-ghost" onclick="toggleAdmin()">⚙&nbsp;&nbsp;Админ</button>
+  </div>
+  <div class="admin-panel" id="admin-panel">
+    <div class="admin-head">Админ хэсэг</div>
+    <div class="admin-body">
+      <div id="pin-area">
+        <p class="pin-hint">PIN код оруулна уу</p>
+        <div class="pin-row">
+          <input type="password" id="pin-in" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
+          <button class="btn-s" onclick="checkPin()">Нэвтрэх</button>
+        </div>
+      </div>
+      <div id="admin-content" style="display:none">
+        <!-- Web App URL тохируулах -->
+        <div class="url-config">
+          <p>📡 <strong>Google Apps Script Web App URL</strong> — share хийхэд бүх хүн нэг өгөгдөл харна</p>
+          <div class="url-config-row">
+            <input type="text" id="webapp-url-input" placeholder="https://script.google.com/macros/s/…/exec">
+            <button onclick="saveWebAppUrl()">Хадгалах</button>
+          </div>
+          <div class="url-saved" id="url-saved">✓ URL хадгалагдлаа — дахин ачааллаж байна…</div>
+        </div>
+
+        <div class="admin-list" id="admin-list"></div>
+        <div class="add-row">
+          <label>Шинэ цаг:</label>
+          <input type="time" id="new-time" value="09:00">
+          <button class="btn-s" onclick="adminAdd()">+ Нэмэх</button>
+        </div>
+        <div class="admin-actions">
+          <button class="btn-s out" onclick="adminRefresh()">↺ Шинэчлэх</button>
+          <button class="btn-s red" onclick="adminClear()">Захиалга цэвэрлэх</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<p class="footer">DDAM &nbsp;·&nbsp; Зөвлөгөөний систем</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════ CONFIG ═══════════════════════════ */
+const STORAGE_KEY = 'ddam_v4';
+const WEBAPP_KEY  = 'ddam_webapp_url';
+const ADMIN_PIN   = '1234';
+
+/* ═══════════════════════════ STATE ════════════════════════════ */
+let slots = [], selected = null, adminUnlocked = false;
+
+/* ═══════════════════════════ HELPERS ══════════════════════════ */
+function addMins(t, m) {
+  const [h, min] = t.split(':').map(Number);
+  const tot = h * 60 + min + m;
+  return `${String(Math.floor(tot/60)).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
+}
+function nextFriday() {
+  const d = new Date();
+  const diff = (5 - d.getDay() + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toLocaleDateString('mn-MN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+}
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = 'toast', 3500);
+}
+function getWebAppUrl() {
+  return localStorage.getItem(WEBAPP_KEY) || '';
+}
+
+/* ═══════════════════════════ API ══════════════════════════════ */
+async function apiLoad() {
+  const url = getWebAppUrl();
+  if (url) {
+    try {
+      const res = await fetch(url + '?t=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    } catch(e) {
+      console.warn('Apps Script fetch failed:', e.message);
+      toast('Apps Script холболт амжилтгүй — локал горим', '');
+    }
+  }
+  // localStorage fallback
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+async function apiPost(body) {
+  const url = getWebAppUrl();
+  if (url) {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'text/plain'},
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return await res.json();
+    } catch(e) {
+      console.warn('Apps Script POST failed:', e.message);
+    }
+  }
+  return null; // fallback: localStorage only
+}
+
+function localSave() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(slots)); } catch {}
+}
+
+function defaultSlots() {
+  return ['09:00','10:00','11:00','12:00','14:00','15:00','16:00'].map(t => ({
+    id: 'slot_' + t.replace(':',''),
+    start: t, end: addMins(t, 50), bookedBy: ''
+  }));
+}
+
+/* ═══════════════════════════ LOAD ═════════════════════════════ */
+async function loadSlots() {
+  document.getElementById('slots-wrap').innerHTML =
+    '<div class="loading"><div class="spin"></div>Ачааллаж байна…</div>';
+  try {
+    const data = await apiLoad();
+    slots = (data && Array.isArray(data) && data.length)
+      ? data.map(s => ({
+          id: s.id || 'slot_'+s.start.replace(':',''),
+          start: s.start || '',
+          end: s.end || addMins(s.start,50),
+          bookedBy: s.bookedBy || ''
+        }))
+      : defaultSlots();
+    slots.sort((a,b) => a.start.localeCompare(b.start));
+    localSave();
+    renderAll();
+    // Show setup banner if no web app configured
+    document.getElementById('setup-banner').style.display = getWebAppUrl() ? 'none' : 'block';
+  } catch(e) {
+    slots = defaultSlots();
+    localSave();
+    renderAll();
+  }
+}
+
+/* ═══════════════════════════ RENDER ═══════════════════════════ */
+function renderAll() {
+  renderStats(); renderSlots(); if (adminUnlocked) renderAdmin();
+}
+function renderStats() {
+  const t = slots.length, b = slots.filter(s=>s.bookedBy).length;
+  document.getElementById('s-t').textContent = t;
+  document.getElementById('s-f').textContent = t - b;
+  document.getElementById('s-b').textContent = b;
+  document.getElementById('stats').style.display = 'grid';
+}
+function renderSlots() {
+  const wrap = document.getElementById('slots-wrap');
+  if (!slots.length) { wrap.innerHTML = '<div class="loading">Цаг байхгүй байна.</div>'; return; }
+  const list = document.createElement('div');
+  list.className = 'slots-list';
+  slots.forEach(s => {
+    const isSel = selected?.id === s.id;
+    const card = document.createElement('div');
+    card.className = 'slot-card' + (s.bookedBy ? ' booked' : isSel ? ' selected' : '');
+    card.innerHTML = `
+      <div>
+        <div class="slot-time">${s.start}</div>
+        <div class="slot-end">— ${s.end}</div>
+      </div>
+      <div class="slot-meta">${s.bookedBy ? `<span class="bname">${s.bookedBy}</span>` : '<span>50 мин зөвлөгөө</span>'}</div>
+      <span class="s-tag ${s.bookedBy?'t-booked':isSel?'t-sel':'t-free'}">${s.bookedBy?'Захиалагдсан':isSel?'Сонгосон':'Чөлөөт'}</span>
+    `;
+    if (!s.bookedBy) card.onclick = () => { selected = isSel ? null : s; renderSlots(); renderConfirm(); };
+    list.appendChild(card);
+  });
+  wrap.innerHTML = ''; wrap.appendChild(list);
+}
+function renderConfirm() {
+  const wrap = document.getElementById('confirm-wrap');
+  if (!selected) { wrap.innerHTML = ''; return; }
+  const s = selected;
+  wrap.innerHTML = `
+    <div class="confirm">
+      <div class="c-label">Цаг баталгаажуулах</div>
+      <div class="c-time">${s.start} &ndash; ${s.end}</div>
+      <div class="c-row">
+        <input type="text" id="uname" placeholder="Нэрээ оруулна уу" maxlength="40" onkeydown="if(event.key==='Enter')doBook()">
+        <button class="btn-book" id="book-btn" onclick="doBook()">Захиалах →</button>
+      </div>
+    </div>`;
+  setTimeout(() => document.getElementById('uname')?.focus(), 40);
+}
+
+/* ═══════════════════════════ BOOK ═════════════════════════════ */
+async function doBook() {
+  const name = document.getElementById('uname')?.value.trim();
+  if (!name) { toast('Нэрээ оруулна уу', 'err'); return; }
+  const btn = document.getElementById('book-btn');
+  btn.disabled = true; btn.textContent = '...';
+  const slot = slots.find(x => x.id === selected?.id);
+  if (!slot || slot.bookedBy) {
+    toast('Энэ цаг захиалагдсан байна', 'err');
+    selected = null; await loadSlots(); return;
+  }
+  // Optimistic update
+  slot.bookedBy = name;
+  selected = null;
+  localSave();
+  renderAll(); renderConfirm();
+  // Sync to Apps Script
+  const r = await apiPost({ action:'book', id: slot.id, name });
+  if (r && !r.ok && r.error === 'already_booked') {
+    slot.bookedBy = '';
+    toast('Энэ цагийг өөр хүн захиалчихсан байна', 'err');
+    await loadSlots();
+  } else {
+    toast(`${slot.start} цаг захиалагдлаа — ${name}`, 'ok');
+  }
+}
+
+/* ═══════════════════════════ ADMIN ════════════════════════════ */
+function toggleAdmin() { document.getElementById('admin-panel').classList.toggle('open'); }
+function checkPin() {
+  if (document.getElementById('pin-in').value === ADMIN_PIN) {
+    adminUnlocked = true;
+    document.getElementById('pin-area').style.display = 'none';
+    document.getElementById('admin-content').style.display = 'block';
+    // Pre-fill saved URL
+    const saved = getWebAppUrl();
+    if (saved) document.getElementById('webapp-url-input').value = saved;
+    renderAdmin();
+  } else { toast('PIN буруу байна', 'err'); }
+}
+function saveWebAppUrl() {
+  const val = document.getElementById('webapp-url-input').value.trim();
+  if (!val || !val.startsWith('https://')) { toast('URL буруу байна', 'err'); return; }
+  localStorage.setItem(WEBAPP_KEY, val);
+  document.getElementById('url-saved').style.display = 'block';
+  document.getElementById('setup-banner').style.display = 'none';
+  setTimeout(() => {
+    document.getElementById('url-saved').style.display = 'none';
+    loadSlots();
+  }, 1500);
+}
+function renderAdmin() {
+  const list = document.getElementById('admin-list');
+  if (!slots.length) { list.innerHTML = '<div style="font-size:13px;color:var(--ink3)">Цаг байхгүй</div>'; return; }
+  list.innerHTML = '';
+  slots.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'ar' + (s.bookedBy ? ' bkd' : '');
+    row.innerHTML = `
+      <div class="ar-time">${s.start} – ${s.end}</div>
+      <div>${s.bookedBy ? `<span class="ar-who">${s.bookedBy}</span>` : '<span class="ar-free">Чөлөөт</span>'}</div>
+      <button class="btn-del" onclick="adminDel('${s.id}')">×</button>`;
+    list.appendChild(row);
+  });
+}
+async function adminAdd() {
+  const t = document.getElementById('new-time').value;
+  if (!t) return;
+  if (slots.some(s => s.start === t)) { toast('Аль хэдийн байна', 'err'); return; }
+  const newS = { id:'slot_'+t.replace(':','')+'_'+Date.now(), start:t, end:addMins(t,50), bookedBy:'' };
+  slots.push(newS);
+  slots.sort((a,b) => a.start.localeCompare(b.start));
+  localSave();
+  const r = await apiPost({ action:'add', start:t, end:newS.end });
+  if (r?.id) newS.id = r.id;
+  toast(`${t} цаг нэмэгдлээ`);
+  renderAll();
+}
+async function adminDel(id) {
+  if (!confirm('Устгах уу?')) return;
+  slots = slots.filter(s => s.id !== id);
+  if (selected?.id === id) { selected = null; renderConfirm(); }
+  localSave();
+  await apiPost({ action:'delete', id });
+  toast('Устгагдлаа');
+  renderAll();
+}
+async function adminClear() {
+  if (!confirm('Бүх захиалгыг цэвэрлэх үү?')) return;
+  slots.forEach(s => s.bookedBy = '');
+  localSave();
+  await apiPost({ action:'clear' });
+  toast('Бүх захиалга цэвэрлэгдлээ');
+  renderAll();
+}
+async function adminRefresh() { await loadSlots(); toast('Шинэчлэгдлээ'); }
+
+/* ═══════════════════════════ INIT ═════════════════════════════ */
+document.getElementById('date-txt').innerHTML =
+  'Дараагийн баасан: <strong>' + nextFriday() + '</strong>';
+loadSlots();
+</script>
+</body>
+</html>
