@@ -231,7 +231,6 @@ body{font-family:'DM Sans',sans-serif;background:#fff;color:var(--ink);min-heigh
   <div class="sched-header">
     <div class="sched-tag"><span class="tag-dot"></span>Цаг захиалга</div>
     <h2>Зөвлөгөөний цаг <em>захиалах</em></h2>
-    <p class="sched-sub">Баасан өдөр &nbsp;·&nbsp; 50 минутын зөвлөгөө &nbsp;·&nbsp; 10 минут завсарлага</p>
   </div>
 
   <div class="date-chip"><span class="chip-dot"></span><span id="date-txt">...</span></div>
@@ -466,6 +465,28 @@ function openLightbox(src){document.getElementById('lb-img').src=src;document.ge
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open')}
 
 /* ══════════════════════════════════════════════════
+   TIME CLEANER
+   Google Sheets цагийг "HH:MM" болгон цэвэрлэнэ
+   Sheets "Sat Dec 30 1899 09:00:00 GMT+0707..." гэж буцаадаг
+══════════════════════════════════════════════════ */
+function cleanTime(val) {
+  if(!val) return '';
+  const s = String(val).trim();
+  if(/^\d{1,2}:\d{2}$/.test(s)) return s.length===4?'0'+s:s;
+  // "09:00:00" → "09:00"
+  if(/^\d{1,2}:\d{2}:\d{2}/.test(s)) return s.slice(0,5);
+  // "...1899 09:00:00 GMT..." гэх мэт Date string
+  const m = s.match(/\b(\d{1,2}):(\d{2}):\d{2}/);
+  if(m) return String(m[1]).padStart(2,'0')+':'+m[2];
+  // Date object
+  try {
+    const d = new Date(s);
+    if(!isNaN(d)) return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  } catch {}
+  return s;
+}
+
+/* ══════════════════════════════════════════════════
    API
 ══════════════════════════════════════════════════ */
 async function api(params){
@@ -489,7 +510,11 @@ async function loadSlots(silent=false){
   if(url){
     const data=await api({action:'list'});
     if(data&&Array.isArray(data)){
-      slots=data.map(s=>({id:s.id||'slot_'+s.start.replace(':',''),start:s.start||'',end:s.end||addMins(s.start,50),bookedBy:s.bookedBy||'',bookingInfo:s.bookingInfo||null})).sort((a,b)=>a.start.localeCompare(b.start));
+      slots=data.map(s=>{
+        const st=cleanTime(s.start);
+        const en=cleanTime(s.end)||addMins(st,50);
+        return {id:s.id||'slot_'+st.replace(':',''),start:st,end:en,bookedBy:s.bookedBy||'',bookingInfo:s.bookingInfo||null};
+      }).sort((a,b)=>a.start.localeCompare(b.start));
       saveLocal();setSyncBar('connected','Google Sheets холбогдсон ✓');
     }else{
       const raw=localStorage.getItem(LS_SLOTS);
